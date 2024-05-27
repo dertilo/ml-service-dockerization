@@ -1,0 +1,46 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+# based on: https://github.com/marketplace/actions/python-poetry-action
+  ci:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.10" ] # no 3.12 yet due to some issues with flake8
+        poetry-version: [ "1.7.1" ]
+        os: [ ubuntu-22.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: ${{ matrix.poetry-version }}
+      - name: Setup a local virtual environment (if no poetry.toml file)
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install the project dependencies
+        run: poetry install --with dev
+      - name: Run the linter
+        run: poetry run pythonlinter
+      - name: Run the automated tests
+        run: poetry run pytest -v
