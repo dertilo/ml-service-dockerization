@@ -76,7 +76,7 @@ class MlDockerService(Buildable):
     mente -> knowledge that might get "extracted from the alma"
     """
 
-    alma: dict | Dataclass | None = field(
+    alma: dict[str, Any] | Dataclass | None = field(
         init=True,
         repr=True,
         default=None,  # TODO: why was this optional?
@@ -144,9 +144,9 @@ class MlDockerService(Buildable):
         return mount
 
 
-def encode_alma(d: Dataclass) -> dict:
+def encode_alma(d: Dataclass) -> dict[str, Any]:
     return encode_dataclass(d, class_reference_key=ALMA_CLASS_KEY)
 
 
-def decode_alma(d: dict) -> Dataclass:
+def decode_alma(d: dict[str, Any]) -> Dataclass:
     return decode_dataclass(d, class_ref_key=ALMA_CLASS_KEY)
