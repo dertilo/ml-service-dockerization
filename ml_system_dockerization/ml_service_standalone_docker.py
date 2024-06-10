@@ -1,5 +1,4 @@
 import logging
-from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -24,7 +23,10 @@ from ml_system_dockerization.docker_service_content import (
     DCBuildSubsection,
     DockerServiceContent,
 )
-from ml_system_dockerization.dockerized_service_utils import wait_for_startup
+from ml_system_dockerization.dockerized_service_utils import (
+    EnterExitService,
+    wait_for_startup,
+)
 from ml_system_dockerization.knowledge_volumes import (
     DcVolumeServiceWrapper,
     create_docker_volume_service,
@@ -44,7 +46,7 @@ REPLACE_BY_CMD_STATEMENT = "# <replace-me-by-CMD-statement>"
 @dataclass(kw_only=True)
 class MlServiceStandaloneDocker(
     HashCachedData,
-    AbstractContextManager,  # pyright: ignore [reportMissingTypeArgument]
+    EnterExitService,
 ):
     """
     uses docker-compose to build an image that contains service+data
@@ -158,7 +160,7 @@ class MlServiceStandaloneDocker(
             self.docker_service.alma,
         )
 
-    def __enter__(self):
+    def _enter_service(self) -> None:
         docker_compose_up_build(
             self.name,
             docker_compose_context_dir=Path(self.docker_compose_context_dir),
@@ -167,14 +169,8 @@ class MlServiceStandaloneDocker(
         # input("wait")
         if self.health_endpoint is not None:
             wait_for_startup(url=self.health_endpoint, max_waits=60)
-        return self
 
-    def __exit__(
-        self,
-        exc_type=None,  # noqa: ANN001
-        exc_val=None,  # noqa: ANN001
-        exc_tb=None,  # noqa: ANN001
-    ) -> None:  # noqa: ANN001
+    def _exit_service(self) -> None:
         logger.info(
             f"exiting: {self.name}:{self.__class__.__name__}:  via docker-compose down in: {self.docker_compose_context_dir}",
         )

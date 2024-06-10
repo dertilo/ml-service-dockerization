@@ -1,6 +1,7 @@
 import logging
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from buildable_dataclasses.buildable import Buildable
 from misc_python_utils.beartypes import Directory, NeStr
@@ -23,13 +24,13 @@ GITLAB_CREDENTIALS = [
 ]
 
 
-@dataclass(slots=True)
+@dataclass
 class DCBuildSubsection:
     context: str
     dockerfile: str = "Dockerfile"
     args: list[str] = field(default_factory=lambda: GITLAB_CREDENTIALS)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {k: getattr(self, k) for k in ["context", "dockerfile", "args"]}
 
 

@@ -1,13 +1,41 @@
 import logging
 import os
+import types
 from time import sleep
-from typing import Any
+from typing import Any, final
 
 from misc_python_utils.prefix_suffix import BASE_PATHES
+from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 VOLUME_MOUNTS = "VOLUME_MOUNTS_"  # arbitraty dir-name
 BIND_VOLUME = "BINDVOLUME_"
+
+
+class EnterExitService:
+    @final
+    def __enter__(self) -> Self:
+        self._enter_service()
+        return self
+
+    @final
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: types.TracebackType | None = None,
+    ):
+        self._exit_service()
+
+    def _enter_service(self) -> None:
+        """
+        load model/data into memory or establish some connection
+        """
+
+    def _exit_service(self) -> None:
+        """
+        tear-down
+        """
 
 
 def is_in_docker_container() -> bool:
